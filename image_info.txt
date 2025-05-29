@@ -1,0 +1,4 @@
+relevant_objects.png
+Relevant objects
+final_answer.png
+Final answer

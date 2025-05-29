@@ -1,0 +1,2 @@
+User query: yellow box
+LLM answer: {'referred objects': ['blue and yellow tube with id 6', 'blue balloon bouquet with id 19'], 'anchors': ['white table with id 11', 'blue and white box with id 25', 'blue and white pen with id 32']}
