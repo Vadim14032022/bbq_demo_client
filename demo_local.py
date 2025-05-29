@@ -56,4 +56,4 @@ def demo():
         interface.load(monitor_and_update, None, [img_1_3d, img_1_2d, desc1, img_2_3d, img_2_2d, desc2, desc12, markdown_display])
     return interface
 
-demo().launch()
+demo().launch(share=True)
