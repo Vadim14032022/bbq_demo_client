@@ -1,2 +1,2 @@
-User query: Where is a red pen?
-LLM answer: {'referred objects': ['blue and brown pen with id 24', 'blue and brown pen with id 27'], 'anchors': ['table with id 0', 'black mug with pens with id 8', 'black metal shelf with id 34']}
+User query: Are there scissors in the image?
+LLM answer: {'referred objects': ['scissors with id 0', 'scissors with id 6', 'scissors with id 31'], 'anchors': ['table with id? (to know the location of the scissors on table)', 'test tube rack with id? (to know the location of the test tube rack)', 'black metal shelf with id? (to know the location of the black metal shelf)']}

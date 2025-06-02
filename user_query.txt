@@ -1,1 +1,1 @@
-Where is a scissors?
+Are there scissors in the image?
