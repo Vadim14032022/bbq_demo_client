@@ -1,2 +1,0 @@
-User query: Are there scissors in the image?
-LLM answer: {'referred objects': ['scissors with id 0', 'scissors with id 6', 'scissors with id 31'], 'anchors': ['table with id? (to know the location of the scissors on table)', 'test tube rack with id? (to know the location of the test tube rack)', 'black metal shelf with id? (to know the location of the black metal shelf)']}

@@ -19,25 +19,29 @@ ORIENTAION_PATH = "input_data/orientation.txt"
 POSE_PATH = "input_data/pose.txt"
 #<-
 
-REMOTE_RELEVANT_OBJECTS_3D = "/home/docker_user/BeyondBareQueries/outputs/3d_relevant_objects.gif"
-REMOTE_RELEVANT_OBJECTS_2D = "/home/docker_user/BeyondBareQueries/outputs/overlayed_masks_sam_and_graph_relevant_objects.png"
-REMOTE_RELEVANT_OBJECTS_TEXT = "/home/docker_user/BeyondBareQueries/outputs/relevant_objects.txt"
-REMOTE_RELEVANT_OBJECTS_TABLE = "/home/docker_user/BeyondBareQueries/outputs/table_relevant_objects.json"
+REMOTE_FILES = {
+"RELEVANT_OBJECTS_3D": "/home/docker_user/BeyondBareQueries/outputs/3d_relevant_objects.gif",
+"RELEVANT_OBJECTS_2D": "/home/docker_user/BeyondBareQueries/outputs/overlayed_masks_sam_and_graph_relevant_objects.png",
+"RELEVANT_OBJECTS_TEXT": "/home/docker_user/BeyondBareQueries/outputs/relevant_objects.txt",
+"RELEVANT_OBJECTS_TABLE": "/home/docker_user/BeyondBareQueries/outputs/table_relevant_objects.json",
 
-REMOTE_FINAL_ANSWER_3D = "/home/docker_user/BeyondBareQueries/outputs/3d_final_answer.gif"
-REMOTE_FINAL_ANSWER_2D = "/home/docker_user/BeyondBareQueries/outputs/overlayed_masks_sam_and_graph_final_answer.png"
-REMOTE_FINAL_ANSWER_TEXT = "/home/docker_user/BeyondBareQueries/outputs/final_answer.txt"
-REMOTE_FINAL_ANSWER_TABLE = "/home/docker_user/BeyondBareQueries/outputs/table_final_answer.json"
+"FINAL_ANSWER_3D": "/home/docker_user/BeyondBareQueries/outputs/3d_final_answer.gif",
+"FINAL_ANSWER_2D": "/home/docker_user/BeyondBareQueries/outputs/overlayed_masks_sam_and_graph_final_answer.png",
+"FINAL_ANSWER_TEXT": "/home/docker_user/BeyondBareQueries/outputs/final_answer.txt",
+"FINAL_ANSWER_TABLE": "/home/docker_user/BeyondBareQueries/outputs/table_final_answer.json",
+}
 
-LOCAL_RELEVANT_OBJECTS_3D = "3d_relevant_objects.gif"
-LOCAL_RELEVANT_OBJECTS_2D = "overlayed_masks_sam_and_graph_relevant_objects.png"
-LOCAL_RELEVANT_OBJECTS_TEXT = "relevant_objects.txt"
-LOCAL_RELEVANT_OBJECTS_TABLE = "table_relevant_objects.json"
+LOCAL_FILES = {
+"RELEVANT_OBJECTS_3D": "outputs/3d_relevant_objects.gif",
+"RELEVANT_OBJECTS_2D": "outputs/overlayed_masks_sam_and_graph_relevant_objects.png",
+"RELEVANT_OBJECTS_TEXT": "outputs/relevant_objects.txt",
+"RELEVANT_OBJECTS_TABLE": "outputs/table_relevant_objects.json",
 
-LOCAL_FINAL_ANSWER_3D = "3d_final_answer.gif"
-LOCAL_FINAL_ANSWER_2D = "overlayed_masks_sam_and_graph_final_answer.png"
-LOCAL_FINAL_ANSWER_TEXT = "final_answer.txt"
-LOCAL_FINAL_ANSWER_TABLE = "table_final_answer.json"
+"FINAL_ANSWER_3D": "outputs/3d_final_answer.gif",
+"FINAL_ANSWER_2D": "outputs/overlayed_masks_sam_and_graph_final_answer.png",
+"FINAL_ANSWER_TEXT": "outputs/final_answer.txt",
+"FINAL_ANSWER_TABLE": "outputs/table_final_answer.json",
+}
 
 def send_data(text,  ssh=None, image_path=None, depth_path=None, pose_path=None):
     with open(os.path.join(REMOTE_PATH, "text.txt"), "w") as f:
@@ -52,7 +56,7 @@ def get_remote_file_timestamp(remote_path):
     return None
 
 def main(args=None):
-    last_timestamp_final_answer = get_remote_file_timestamp(REMOTE_FINAL_ANSWER_TEXT)
+    last_mtimes = {key: get_remote_file_timestamp(path) for key, path in REMOTE_FILES.items()}
     while True:
         user_input = input("Your input here:")
         if user_input.lower() == "exit":
@@ -60,22 +64,19 @@ def main(args=None):
 
         send_data(user_input)
 
+        updated_files = set()
         while True:
             time.sleep(INTERVAL)
-            new_timestamp = get_remote_file_timestamp(REMOTE_FINAL_ANSWER_TEXT)
-            if new_timestamp != last_timestamp_final_answer:
-                print(f"Change detected! Downloading {REMOTE_FINAL_ANSWER_TEXT}...")
-                shutil.copy(REMOTE_RELEVANT_OBJECTS_3D, LOCAL_RELEVANT_OBJECTS_3D)
-                shutil.copy(REMOTE_RELEVANT_OBJECTS_2D, LOCAL_RELEVANT_OBJECTS_2D)
-                shutil.copy(REMOTE_RELEVANT_OBJECTS_TEXT, LOCAL_RELEVANT_OBJECTS_TEXT)
-                shutil.copy(REMOTE_RELEVANT_OBJECTS_TABLE, LOCAL_RELEVANT_OBJECTS_TABLE)
+            for key, path in REMOTE_FILES.items():
+                current_mtime = get_remote_file_timestamp(path)
+                if current_mtime != last_mtimes[key]:
+                    last_mtimes[key] = current_mtime
+                    print(f"Change detected! Downloading {path}...")
+                    shutil.copy(path, LOCAL_FILES[key])
+                    updated_files.add(path)
+                    print(f"File {len(updated_files)}/{len(REMOTE_FILES)} copied to {LOCAL_FILES[key]}")
 
-                shutil.copy(REMOTE_FINAL_ANSWER_3D, LOCAL_FINAL_ANSWER_3D)
-                shutil.copy(REMOTE_FINAL_ANSWER_2D, LOCAL_FINAL_ANSWER_2D)
-                shutil.copy(REMOTE_FINAL_ANSWER_TEXT, LOCAL_FINAL_ANSWER_TEXT)
-                shutil.copy(REMOTE_FINAL_ANSWER_TABLE, LOCAL_FINAL_ANSWER_TABLE)
-                print(f"File copied to {REMOTE_FINAL_ANSWER_TEXT}")
-                last_timestamp_final_answer = new_timestamp
+            if len(updated_files) == len(REMOTE_FILES):
                 break
 
 if __name__ == '__main__':
