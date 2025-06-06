@@ -1,2 +1,2 @@
-User query: Are there scissors in the image?
-LLM answer: {'referred objects': ['a pair of scissors with id 0', 'a pair of scissors with black handles and silver blades with id 6', 'the object is a pair of scissors with a black handle and a silver blade with id 31'], 'anchors': []}
+User query: Are there a cup in the image?
+LLM answer: {'referred objects': ['a black cup with a blue object and three white and brown objects inside with id 8', 'a black cup with id 12'], 'anchors': ['a wooden table with id 20', 'a gray surface with id 10', 'a gray surface with id 26']}
