@@ -12,8 +12,17 @@
     margin-bottom: 10px !important; 
     font-weight: bold;
 }
+.Others {
+    background: LightSkyBlue;
+    color: black;
+    padding: 5px 10px;
+    border-radius: 3px;
+    border: 1px solid #ddd;
+    margin-right: 10px;
+    display: inline-block;
+}
 .Targets { 
-    background: LightGreen; 
+    background: Salmon; 
     color: black; 
     padding: 5px 10px; 
     border-radius: 3px; 
@@ -22,7 +31,7 @@
     display: inline-block;
 }
 .Anchors { 
-    background: LightSkyBlue; 
+    background: LightGreen; 
     color: black; 
     padding: 5px 10px; 
     border-radius: 3px; 

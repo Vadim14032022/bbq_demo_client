@@ -38,16 +38,16 @@ DUMMY_OUTPUTS = {
 def generate_html_table(json_data):
     rows = ""
     for row in json_data:
-        color = row.get("color", "#ffffff")
         label = row.get("label", "N/A")
-        rows += f"<tr style='background-color:{color};'>"
-        rows += f"<td style='border: 1px solid #ccc; padding: 4px;'>{label}</td>"
-        rows += "</tr>"
+        obj_type = row.get("type", "others").capitalize()
+        # Добавим style для span, чтобы он растягивался
+        span_html = f'<span class="{obj_type}" style="display: block; width: 100%;">{label}</span>'
+        rows += f"<tr><td style='border: none; padding: 4px; width: 100%;'>{span_html}</td></tr>"
 
     html = f"""
     <div style='height:400px; overflow-y:auto; border:1px solid #ccc;'>
-        <table style='width:100%; border-collapse: collapse;'>
-            <tr><th>ID: Value</th></tr>
+        <table style='width:100%; border-collapse: collapse; table-layout: fixed;'>
+            <tr><th style='width:100%; text-align: left;'>ID: Value</th></tr>
             {rows}
         </table>
     </div>
@@ -157,7 +157,6 @@ def monitor_and_update():
     yield load_image_info(DUMMY_OUTPUTS)
     while True:
         time.sleep(INTERVAL)
-        print(f"{query_mtimes} VS {get_local_file_timestamp(USER_QUERY)}")
         if query_mtimes != get_local_file_timestamp(USER_QUERY):
             query_mtimes = get_local_file_timestamp(USER_QUERY)
             current_outputs = DUMMY_OUTPUTS.copy()
