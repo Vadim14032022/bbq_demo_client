@@ -40,7 +40,6 @@ def generate_html_table(json_data):
     for row in json_data:
         label = row.get("label", "N/A")
         obj_type = row.get("type", "others").capitalize()
-        # Добавим style для span, чтобы он растягивался
         span_html = f'<span class="{obj_type}" style="display: block; width: 100%;">{label}</span>'
         rows += f"<tr><td style='border: none; padding: 4px; width: 100%;'>{span_html}</td></tr>"
 
@@ -108,11 +107,12 @@ def create_objects_html(title, list_obj1, list_obj2, name_list1, name_list2): #n
     </div>
     """
 
-def create_answer_html(title, list_obj): #new func
-    """Создает HTML-блок с заголовком, select object и explanation"""
+def create_answer_html(title, list_obj):
+    """Создает HTML-блок ответа в едином стиле с create_objects_html"""
     return f"""
-    <div class="object-container">
-        <div class="object-title">{title}</div>
+    <div class="objects-container">
+        <h3 style="margin-bottom: 15px;">{title}</h3>
+        <div class="section-title">Selected object and explanation:</div>
         <div class="object-pair">
             <span class="id-box">{list_obj[0]}</span>
             <span class="explanation-box">{list_obj[1]}</span>
@@ -139,12 +139,26 @@ def load_image_info(current_outputs):
     with open(current_outputs["FINAL_ANSWER_TABLE"], 'r') as f:
         table2 = generate_html_table(json.load(f))
 
-    return (
-        current_outputs["RELEVANT_OBJECTS_3D"], table1, current_outputs["RELEVANT_OBJECTS_2D"],
-        create_objects_html("Target and anchors (deductive stage 1)", targets, anchors, "Targets", "Anchors"), #modified string
-        current_outputs["FINAL_ANSWER_3D"], table2, current_outputs["FINAL_ANSWER_2D"],
-        create_answer_html("Final answer (deductive stage 2)", answer), #modified string
-        user_query)
+    if current_outputs["FINAL_ANSWER_3D"] != DUMMY_OUTPUTS["FINAL_ANSWER_3D"]:
+        # Final stage
+        return (
+            current_outputs["FINAL_ANSWER_3D"],
+            table2,
+            current_outputs["FINAL_ANSWER_2D"],
+            create_objects_html("Target and anchors (deductive stage 1)", targets, anchors, "Targets", "Anchors"), #modified string
+            create_answer_html("Final answer (deductive stage 2)", answer), #modified string
+            user_query
+        )
+    else:
+        # Stage 1
+        return (
+            current_outputs["RELEVANT_OBJECTS_3D"],
+            table1,
+            current_outputs["RELEVANT_OBJECTS_2D"],
+            create_objects_html("Target and anchors (deductive stage 1)", targets, anchors, "Targets", "Anchors"), #modified string
+            create_answer_html("Final answer (deductive stage 2)", answer), #modified string
+            user_query
+        )
 
 def get_local_file_timestamp(local_path):
     if os.path.exists(local_path):
@@ -173,7 +187,6 @@ def monitor_and_update():
                         current_outputs[key] = path
                         updated = True
                         break_out.add(path)
-                print("break_out ", break_out)
                 if len(break_out) == len(LOCAL_FILES):
                     break
                 if updated:
@@ -193,15 +206,9 @@ def demo():
                 table_1 = gr.HTML()
             img_1_2d = gr.Image(height=400, scale=3)
         objects_section_1 = gr.HTML()
-
-        with gr.Row():
-            img_2_3d = gr.Image(width=400, height=400, format="gif", scale=2)
-            with gr.Column():
-                table_2 = gr.HTML()
-            img_2_2d = gr.Image(height=400, scale=3)
         objects_section_2 = gr.HTML()
 
-        interface.load(monitor_and_update, None, [img_1_3d, table_1, img_1_2d, objects_section_1, img_2_3d, table_2, img_2_2d, objects_section_2, markdown_display])
+        interface.load(monitor_and_update, None, [img_1_3d, table_1, img_1_2d, objects_section_1, objects_section_2, markdown_display])
     return interface
 
 demo().launch(share=True)
