@@ -13,30 +13,24 @@
     font-weight: bold;
 }
 .Others {
-    background: LightSkyBlue;
+    background: LightGreen;
     color: black;
-    padding: 5px 10px;
+    padding: 0px 2px;
     border-radius: 3px;
-    border: 1px solid #ddd;
-    margin-right: 10px;
     display: inline-block;
 }
 .Targets { 
     background: Salmon; 
     color: black; 
-    padding: 5px 10px; 
+    padding: 0px 2px; 
     border-radius: 3px; 
-    border: 1px solid #ddd;
-    margin-right: 10px;
     display: inline-block;
 }
 .Anchors { 
-    background: LightGreen; 
+    background: LightSkyBlue; 
     color: black; 
-    padding: 5px 10px; 
+    padding: 0px 2px; 
     border-radius: 3px; 
-    border: 1px solid #ddd;
-    margin-right: 10px;
     display: inline-block;
 }
 .object-container {
@@ -53,7 +47,7 @@
 .id-box {
     background: Salmon;
     color: black;
-    padding: 5px 10px;
+    padding: 2px 2px;
     border-radius: 3px;
     margin-right: 10px;
     flex-shrink: 0;
@@ -62,7 +56,7 @@
 .explanation-box {
     background: white;
     color: black;
-    padding: 5px 10px;
+    padding: 2px 2px;
     flex-grow: 1;
     white-space: normal;
     line-height: 1.5;

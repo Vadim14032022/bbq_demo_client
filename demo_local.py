@@ -35,18 +35,49 @@ DUMMY_OUTPUTS = {
 "FINAL_ANSWER_TABLE": DUMMY_TABLE,
 }
 
-def generate_html_table(json_data):
+def generate_html_objects_table(json_data):
     rows = ""
     for row in json_data:
         label = row.get("label", "N/A")
         obj_type = row.get("type", "others").capitalize()
         span_html = f'<span class="{obj_type}" style="display: block; width: 100%;">{label}</span>'
-        rows += f"<tr><td style='border: none; padding: 4px; width: 100%;'>{span_html}</td></tr>"
+        rows += f"<tr><td style='border: none; padding: 0px; margin 0px; width: 100%;'>{span_html}</td></tr>"
 
     html = f"""
     <div style='height:400px; overflow-y:auto; border:1px solid #ccc;'>
         <table style='width:100%; border-collapse: collapse; table-layout: fixed;'>
             <tr><th style='width:100%; text-align: left;'>ID: Value</th></tr>
+            {rows}
+        </table>
+    </div>
+    """
+    return html
+
+def generate_html_relations_table(json_data):
+    rows = ""
+    for row in json_data:
+        sub = row.get("sub", "N/A")
+        obj = row.get("obj", "N/A")
+        rel = row.get("rel", "N/A")
+
+        # Составляем HTML-строку
+        sub_html = f'<span class="Targets">{sub}</span>'
+        obj_html = f'<span class="Anchors">{obj}</span>'
+        rel_html = f'<span class="explanation-box">{rel}</span>'
+
+        # Формируем одну ячейку таблицы с двумя строками: "sub <-> obj" и "rel"
+        cell_html = f"""
+            <div style="display: flex; justify-content: start; gap: 1px;">
+                {sub_html}{rel_html}{obj_html}
+            </div>
+        """
+
+        rows += f"<tr><td style='border: none; padding: 0px; margin: 0px; width: 100%;'>{cell_html}</td></tr>"
+
+    html = f"""
+    <div style='height:400px; overflow-y:auto; border:1px solid #ccc;'>
+        <table style='width:100%; border-collapse: collapse; table-layout: fixed;'>
+            <tr><th style='width:100%; text-align: left;'>sub / relation / obj</th></tr>
             {rows}
         </table>
     </div>
@@ -94,8 +125,8 @@ def format_final_answer(text): #new_func
 
 def create_objects_html(title, list_obj1, list_obj2, name_list1, name_list2): #new func
     """Создает HTML-блок с заголовком, targets и anchors"""
-    list_obj1_html = " ".join([f'<span class="{name_list1}">{item}</span>' for item in list_obj1])
-    list_obj2_html = " ".join([f'<span class="{name_list2}">{item}</span>' for item in list_obj2])
+    list_obj1_html = " ".join([f'<span class="{name_list1}" style="margin-right: 8px;">{item}</span>' for item in list_obj1])
+    list_obj2_html = " ".join([f'<span class="{name_list2}" style="margin-right: 8px;">{item}</span>' for item in list_obj2])
     
     return f"""
     <div class="objects-container">
@@ -114,7 +145,7 @@ def create_answer_html(title, list_obj):
         <h3 style="margin-bottom: 15px;">{title}</h3>
         <div class="section-title">Selected object and explanation:</div>
         <div class="object-pair">
-            <span class="id-box">{list_obj[0]}</span>
+            <span class="id-box" style="margin-right: 8px;">{list_obj[0]}</span>
             <span class="explanation-box">{list_obj[1]}</span>
         </div>
     </div>
@@ -125,6 +156,16 @@ def load_image_info(current_outputs):
         user_query = f.read()
     user_query = f" ##  User query: {user_query}"
 
+    with open(current_outputs["RELEVANT_OBJECTS_TABLE"], 'r') as f:
+        json1 = json.load(f)
+        obj_table1 = generate_html_objects_table(json1['objects'])
+        rel_table1 = generate_html_relations_table(json1['relations'])
+
+    with open(current_outputs["FINAL_ANSWER_TABLE"], 'r') as f:
+        json2 = json.load(f)
+        obj_table2 = generate_html_objects_table(json2['objects'])
+        rel_table2 = generate_html_relations_table(json2['relations'])
+
     with open(current_outputs["RELEVANT_OBJECTS_TEXT"], 'r') as f:
         #relevant_text = f.read()
         targets, anchors = format_target_and_anchors(f.read()) #modified string
@@ -132,18 +173,13 @@ def load_image_info(current_outputs):
     with open(current_outputs["FINAL_ANSWER_TEXT"], 'r') as f:
         #final_text = f.read()
         answer = format_final_answer(f.read()) #modified string
-
-    with open(current_outputs["RELEVANT_OBJECTS_TABLE"], 'r') as f:
-        table1 = generate_html_table(json.load(f))
-
-    with open(current_outputs["FINAL_ANSWER_TABLE"], 'r') as f:
-        table2 = generate_html_table(json.load(f))
+        answer[0] = (next((item for item in json2["objects"] if item.get("type") == "targets"), {'label': 'Loading...'}))['label']
 
     if current_outputs["FINAL_ANSWER_3D"] != DUMMY_OUTPUTS["FINAL_ANSWER_3D"]:
         # Final stage
         return (
             current_outputs["FINAL_ANSWER_3D"],
-            table2,
+            obj_table2, rel_table2,
             current_outputs["FINAL_ANSWER_2D"],
             create_objects_html("Target and anchors (deductive stage 1)", targets, anchors, "Targets", "Anchors"), #modified string
             create_answer_html("Final answer (deductive stage 2)", answer), #modified string
@@ -153,7 +189,7 @@ def load_image_info(current_outputs):
         # Stage 1
         return (
             current_outputs["RELEVANT_OBJECTS_3D"],
-            table1,
+            obj_table1, rel_table1,
             current_outputs["RELEVANT_OBJECTS_2D"],
             create_objects_html("Target and anchors (deductive stage 1)", targets, anchors, "Targets", "Anchors"), #modified string
             create_answer_html("Final answer (deductive stage 2)", answer), #modified string
@@ -203,12 +239,14 @@ def demo():
         with gr.Row():
             img_1_3d = gr.Image(width=400, height=400, format="gif", scale=2)
             with gr.Column(scale=1):
-                table_1 = gr.HTML()
+                objects_table = gr.HTML()
+            with gr.Column(scale=1):
+                relations_table = gr.HTML()
             img_1_2d = gr.Image(height=400, scale=3)
         objects_section_1 = gr.HTML()
         objects_section_2 = gr.HTML()
 
-        interface.load(monitor_and_update, None, [img_1_3d, table_1, img_1_2d, objects_section_1, objects_section_2, markdown_display])
+        interface.load(monitor_and_update, None, [img_1_3d, objects_table, relations_table, img_1_2d, objects_section_1, objects_section_2, markdown_display])
     return interface
 
 demo().launch(share=True)
