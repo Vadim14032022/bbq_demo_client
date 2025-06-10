@@ -9,7 +9,7 @@ import time
 
 
 REMOTE_PATH = "/home/docker_user/BeyondBareQueries"
-INTERVAL = 1
+INTERVAL = 0.2
 
 # not important ->
 IMAGE_PATH = "input_data/rgb.png"
@@ -20,6 +20,12 @@ POSE_PATH = "input_data/pose.txt"
 #<-
 
 REMOTE_FILES = {
+"INIT_IMAGE_2D": "/home/docker_user/BeyondBareQueries/outputs/init_image.png",
+
+"SOM_IMAGE_3D": "/home/docker_user/BeyondBareQueries/outputs/3d_som_objects.gif",
+"SOM_IMAGE_2D": "/home/docker_user/BeyondBareQueries/outputs/overlayed_masks_sam_and_graph_som_objects.png",
+"SOM_IMAGE_TABLE": "/home/docker_user/BeyondBareQueries/outputs/table_som_objects.json",
+
 "RELEVANT_OBJECTS_3D": "/home/docker_user/BeyondBareQueries/outputs/3d_relevant_objects.gif",
 "RELEVANT_OBJECTS_2D": "/home/docker_user/BeyondBareQueries/outputs/overlayed_masks_sam_and_graph_relevant_objects.png",
 "RELEVANT_OBJECTS_TEXT": "/home/docker_user/BeyondBareQueries/outputs/relevant_objects.txt",
@@ -32,6 +38,12 @@ REMOTE_FILES = {
 }
 
 LOCAL_FILES = {
+"INIT_IMAGE_2D": "outputs/init_image.png",
+
+"SOM_IMAGE_3D": "outputs/3d_som_objects.gif",
+"SOM_IMAGE_2D": "outputs/overlayed_masks_sam_and_graph_som_objects.png",
+"SOM_IMAGE_TABLE": "outputs/table_som_objects.json",
+
 "RELEVANT_OBJECTS_3D": "outputs/3d_relevant_objects.gif",
 "RELEVANT_OBJECTS_2D": "outputs/overlayed_masks_sam_and_graph_relevant_objects.png",
 "RELEVANT_OBJECTS_TEXT": "outputs/relevant_objects.txt",
@@ -56,12 +68,12 @@ def get_remote_file_timestamp(remote_path):
     return None
 
 def main(args=None):
-    last_mtimes = {key: get_remote_file_timestamp(path) for key, path in REMOTE_FILES.items()}
     while True:
         user_input = input("Your input here:")
         if user_input.lower() == "exit":
             break
 
+        last_mtimes = {key: get_remote_file_timestamp(path) for key, path in REMOTE_FILES.items()}
         send_data(user_input)
 
         updated_files = set()

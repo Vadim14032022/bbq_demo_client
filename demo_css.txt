@@ -13,14 +13,14 @@
     font-weight: bold;
 }
 .Others {
-    background: LightGreen;
+    background: DarkGrey;
     color: black;
     padding: 0px 2px;
     border-radius: 3px;
     display: inline-block;
 }
 .Targets { 
-    background: Salmon; 
+    background: LightGreen; 
     color: black; 
     padding: 0px 2px; 
     border-radius: 3px; 
@@ -33,6 +33,13 @@
     border-radius: 3px; 
     display: inline-block;
 }
+.Answer {
+    background: Salmon;
+    color: black;
+    padding: 0px 2px;
+    border-radius: 3px;
+    display: inline-block;
+}
 .object-container {
     margin-bottom: 20px;
     border: 1px solid #444;
@@ -43,15 +50,6 @@
 .object-pair {
     display: flex;
     align-items: flex-start;
-}
-.id-box {
-    background: Salmon;
-    color: black;
-    padding: 2px 2px;
-    border-radius: 3px;
-    margin-right: 10px;
-    flex-shrink: 0;
-    font-weight: bold;
 }
 .explanation-box {
     background: white;
