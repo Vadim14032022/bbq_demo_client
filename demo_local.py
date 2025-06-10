@@ -7,7 +7,7 @@ import json
 INTERVAL = 0.1
 
 LOCAL_FILES = {
-"INIT_IMAGE_2D": "outputs/init_image.png",
+"INIT_IMAGE_2D": "image.png",
 
 "SOM_IMAGE_3D": "outputs/3d_som_objects.gif",
 "SOM_IMAGE_2D": "outputs/overlayed_masks_sam_and_graph_som_objects.png",
@@ -22,6 +22,22 @@ LOCAL_FILES = {
 "FINAL_ANSWER_2D": "outputs/overlayed_masks_sam_and_graph_final_answer.png",
 "FINAL_ANSWER_TEXT": "outputs/final_answer.txt",
 "FINAL_ANSWER_TABLE": "outputs/table_final_answer.json",
+}
+
+FILE_TO_COMPONENT = {
+    "RELEVANT_OBJECTS_3D": "OBJECTS_3D",
+    "FINAL_ANSWER_3D": "OBJECTS_3D",
+    "SOM_IMAGE_3D": "OBJECTS_3D",
+
+    "RELEVANT_OBJECTS_2D": "OBJECTS_2D",
+    "FINAL_ANSWER_2D": "OBJECTS_2D",
+    "SOM_IMAGE_2D": "OBJECTS_2D",
+    "INIT_IMAGE_2D": "OBJECTS_2D",
+
+    "RELEVANT_OBJECTS_TEXT": "OBJECTS_TEXT",
+    "FINAL_ANSWER_TEXT": "ANSWER_TEXT",
+
+    "USER_QUERY": "USER_QUERY",
 }
 
 USER_QUERY = 'user_query.txt'
@@ -48,7 +64,6 @@ DUMMY_OUTPUTS = {
 def generate_html_objects_table(json_data):
     rows = ""
     for row in json_data:
-        print(type(row), row)
         label = row["label"]
         obj_type = row["type"].capitalize()
         span_html = f'<span class="{obj_type}" style="display: block; width: 100%;">{label}</span>'
@@ -71,6 +86,7 @@ def generate_html_relations_table(json_data):
         sub = row["sub"]
         obj = row["obj"]
         rel = row["rel"]
+        rel = rel[:rel.rfind(',')]
 
         # Составляем HTML-строку
         sub_type = "Answer" if len(unique_subs)==1  else "Targets"
@@ -121,19 +137,19 @@ def format_target_and_anchors(text): #new_func
 
 def format_final_answer(text): #new_func
     """Форматирует поле Final answer"""
-    print("text: ", text)
     if '{' in text and '}' in text:
         json_part = text[text.find('{'):text.find('}')+1]
-        print("json_part: ", json_part)
         try:
             data = json.loads(json_part)
             explanation = data['explanation']
             id = data['id']
         except Exception as e:
+            id = '-1'
+            explanation = f"json parse error: {e}"
             print("error: ", e)
             pass
 
-    select = f"I select the object with id {id}"
+    select = f""
     return [select, explanation]
 
 def create_objects_html(title, list_obj1, list_obj2, name_list1, name_list2): #new func
@@ -166,98 +182,23 @@ def create_answer_html(title, list_obj):
 def prepare_objects_table(json_data):
     json_tab = []
     for item in json_data:
-        print(item)
         json_tab.append({"label": f"{item['id']}: {item['description']}", "type": "others"})
     return json_tab
-
-def load_image_info(current_outputs):
-    with open(current_outputs["USER_QUERY"], 'r') as f:
-        user_query = f.read()
-    user_query = f" ##  User query: {user_query}"
-
-    with open(current_outputs["RELEVANT_OBJECTS_TABLE"], 'r') as f:
-        json1 = json.load(f)
-        obj_table1 = generate_html_objects_table(json1['objects'])
-        rel_table1 = generate_html_relations_table(json1['relations'])
-
-    with open(current_outputs["FINAL_ANSWER_TABLE"], 'r') as f:
-        json2 = json.load(f)
-        obj_table2 = generate_html_objects_table(json2['objects'])
-        rel_table2 = generate_html_relations_table(json2['relations'])
-
-#    with open(current_outputs["OBJECTS"], 'r') as f:
-#        json3 = json.load(f)
-#        if current_outputs["OBJECTS"] != DUMMY_OUTPUTS["OBJECTS"]:
-#            json3 = {"objects": prepare_objects_table(json3)}
-#        print(type(json3))
-#        obj_table3 = generate_html_objects_table(json3['objects'])
-
-    with open(current_outputs["RELEVANT_OBJECTS_TEXT"], 'r') as f:
-        #relevant_text = f.read()
-        targets, anchors = format_target_and_anchors(f.read()) #modified string
-
-    with open(current_outputs["FINAL_ANSWER_TEXT"], 'r') as f:
-        #final_text = f.read()
-        answer = format_final_answer(f.read()) #modified string
-        answer[0] = (next((item for item in json2["objects"] if item.get("type") == "answer"), {'label': 'Loading...'}))['label']
-
-    if current_outputs["FINAL_ANSWER_3D"] != DUMMY_OUTPUTS["FINAL_ANSWER_3D"]:
-        # Final stage
-        first_row = (
-            current_outputs["FINAL_ANSWER_3D"],
-            obj_table2, rel_table2,
-            current_outputs["FINAL_ANSWER_2D"])
-    elif current_outputs["RELEVANT_OBJECTS_3D"] != DUMMY_OUTPUTS["RELEVANT_OBJECTS_3D"]:
-        # Stage 1
-        first_row = (
-            current_outputs["RELEVANT_OBJECTS_3D"],
-            obj_table1, rel_table1,
-            current_outputs["RELEVANT_OBJECTS_2D"])
-    else:
-        if current_outputs["OBJECTS_IMAGE"] != DUMMY_OUTPUTS["OBJECTS_IMAGE"]:
-            first_row = (
-                current_outputs["RELEVANT_OBJECTS_3D"],
-                obj_table2, rel_table1,
-                current_outputs["OBJECTS_IMAGE"])
-        else:
-            first_row = (
-                current_outputs["RELEVANT_OBJECTS_3D"],
-                obj_table2, rel_table1,
-                current_outputs["ROW_IMAGE"])
-
-    return (
-        *first_row,
-        create_objects_html("Target and anchors (deductive stage 1)", targets, anchors, "Targets", "Anchors"), #modified string
-        create_answer_html("Final answer (deductive stage 2)", answer), #modified string
-        user_query
-    )
 
 def load_image_info(current_outputs, updated_keys):
     with open(current_outputs["USER_QUERY"], 'r') as f:
         user_query = f.read()
     user_query = f" ##  User query: {user_query}"
 
-    with open(current_outputs["RELEVANT_OBJECTS_TEXT"], 'r') as f:
-        #relevant_text = f.read()
-        targets, anchors = format_target_and_anchors(f.read()) #modified string
-
-    with open(current_outputs["FINAL_ANSWER_TEXT"], 'r') as f:
-        #final_text = f.read()
-        answer = format_final_answer(f.read()) #modified string
-        answer[0] = (next((item for item in json2["objects"] if item.get("type") == "answer"), {'label': 'Loading...'}))['label']
-
-    obj_text = create_objects_html("Target and anchors (deductive stage 1)", targets, anchors, "Targets", "Anchors"), #modified string
-    final_answer = create_answer_html("Final answer (deductive stage 2)", answer), #modified string
-
     if current_outputs["FINAL_ANSWER_3D"] != DUMMY_OUTPUTS["FINAL_ANSWER_3D"]:
-        obj_3d = current_outputs["FINAL_ANSWER_3D"],
+        obj_3d = current_outputs["FINAL_ANSWER_3D"]
     elif current_outputs["RELEVANT_OBJECTS_3D"] != DUMMY_OUTPUTS["RELEVANT_OBJECTS_3D"]:
         obj_3d = current_outputs["RELEVANT_OBJECTS_3D"]
     else:
-        obj_3d = current_outputs["ROW_OBJECTS_3D"]
+        obj_3d = current_outputs["SOM_IMAGE_3D"]
 
     if current_outputs["FINAL_ANSWER_2D"] != DUMMY_OUTPUTS["FINAL_ANSWER_2D"]:
-        obj_2d = current_outputs["FINAL_ANSWER_2D"],
+        obj_2d = current_outputs["FINAL_ANSWER_2D"]
     elif current_outputs["RELEVANT_OBJECTS_2D"] != DUMMY_OUTPUTS["RELEVANT_OBJECTS_2D"]:
         obj_2d = current_outputs["RELEVANT_OBJECTS_2D"]
     elif current_outputs["SOM_IMAGE_2D"] != DUMMY_OUTPUTS["SOM_IMAGE_2D"]:
@@ -282,18 +223,40 @@ def load_image_info(current_outputs, updated_keys):
 
     if current_outputs["FINAL_ANSWER_TABLE"] != DUMMY_OUTPUTS["FINAL_ANSWER_TABLE"]:
         obj_table, rel_table = obj_table2, rel_table2
-    elif current_outputs["RELEVANT_OBJECTS_TABLE"] !- DUMMY_OUTPUTS["RELEVANT_OBJECTS_TABLE"]:
+    elif current_outputs["RELEVANT_OBJECTS_TABLE"] != DUMMY_OUTPUTS["RELEVANT_OBJECTS_TABLE"]:
         obj_table, rel_table = obj_table1, rel_table1
     else:
         obj_table, rel_table = obj_table3, rel_table3
 
+    with open(current_outputs["RELEVANT_OBJECTS_TEXT"], 'r') as f:
+        #relevant_text = f.read()
+        targets, anchors = format_target_and_anchors(f.read()) #modified string
+
+    with open(current_outputs["FINAL_ANSWER_TEXT"], 'r') as f:
+        #final_text = f.read()
+        answer = format_final_answer(f.read()) #modified string
+        answer[0] = (next((item for item in json2["objects"] if item.get("type") == "answer"), {'label': 'Loading...'}))['label']
+
+    obj_text = create_objects_html("Target and anchors (deductive stage 1)", targets, anchors, "Targets", "Anchors"), #modified string
+    final_answer = create_answer_html("Final answer (deductive stage 2)", answer), #modified string
+
+    components_keys = set()
+    print(updated_keys)
+    for key in updated_keys:
+        if key.split('_')[-1] == "TABLE":
+            components_keys.add("OBJECTS_TABLE")
+            components_keys.add("RELATIONS_TABLE")
+        else:
+            components_keys.add(FILE_TO_COMPONENT[key])
+    print("="*100)
     def update_if(key, value):
-        return gr.update(value=value) if key in updated_keys else gr.update()
+        print("key: ", key, "\t\tvalue: ", key in components_keys)
+        return gr.update(value=value) if key in components_keys else gr.update()
 
     return [
         update_if("OBJECTS_3D", obj_3d),   # RELEVANT_OBJECTS_3D
         update_if("OBJECTS_TABLE", obj_table),              # RELEVANT_OBJECTS_TABLE
-        update_if("RELATIONS_TABLE", rel_table)                # RELATIONS_TABLE
+        update_if("RELATIONS_TABLE", rel_table),                # RELATIONS_TABLE
         update_if("OBJECTS_2D", obj_2d),   # RELEVANT_OBJECTS_2D
         update_if("OBJECTS_TEXT", obj_text),               # RELEVANT_OBJECTS_TEXT
         update_if("ANSWER_TEXT", final_answer),           # FINAL_ANSWER_TEXT
@@ -308,15 +271,16 @@ def get_local_file_timestamp(local_path):
 def monitor_and_update():
     last_mtimes = {key: get_local_file_timestamp(path) for key, path in LOCAL_FILES.items()}
     query_mtimes = get_local_file_timestamp(USER_QUERY)
-    yield load_image_info(DUMMY_OUTPUTS)
+    yield load_image_info(DUMMY_OUTPUTS, set(list(LOCAL_FILES.keys())+["USER_QUERY"]))
     while True:
         time.sleep(INTERVAL)
         if query_mtimes != get_local_file_timestamp(USER_QUERY):
             query_mtimes = get_local_file_timestamp(USER_QUERY)
             current_outputs = DUMMY_OUTPUTS.copy()
             current_outputs["USER_QUERY"] = USER_QUERY
-            yield load_image_info(current_outputs)
-            break_out = set()
+            current_outputs["INIT_IMAGE_2D"] = LOCAL_FILES["INIT_IMAGE_2D"]
+            yield load_image_info(current_outputs, set(list(LOCAL_FILES.keys())+["USER_QUERY"]))
+            break_out = set(["INIT_IMAGE_2D"])
             while True:
                 updated_keys = set()
                 for key, path in LOCAL_FILES.items():
@@ -330,7 +294,7 @@ def monitor_and_update():
                     break
                 if len(updated_keys) > 0:
                     yield load_image_info(current_outputs, updated_keys)
-            yield load_image_info(current_outputs)
+            yield load_image_info(current_outputs, set(list(LOCAL_FILES.keys())))
 
 with open("demo_css.txt", "r") as f:
     css = f.read()

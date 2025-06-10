@@ -1,2 +1,2 @@
-User query: Are there a pen?
-LLM answer: {'referred objects': ['the blue marker with id 24', 'the blue marker with id 27', 'the green marker with id 33', 'the green marker with id 37'], 'anchors': ['the wooden table with id 20', 'the wooden table with id 21', 'the wooden table with id 22', 'the wooden table with id 23', 'the gray surface with id 10', 'the gray surface with id 26']}
+User query: are there a pen?
+LLM answer: {'referred objects': ['the blue marker with id 24', 'the blue marker with id 27', 'the green marker with id 33', 'the green marker with id 37'], 'anchors': ['the wooden table with id 20', 'the wooden table with id 21', 'the wooden table with id 22', 'the wooden table with id 23', 'the wooden table with id 28', 'the wooden table with id 30', 'the wooden table with id 35', 'the wooden table with id 36', 'the wooden table with id 38']}
